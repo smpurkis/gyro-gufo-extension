@@ -1,0 +1,186 @@
+{
+  "schema": 1,
+  "name": "flash_next_gyro",
+  "version": "0.1.0",
+  "api_version": ">= 0.3.0",
+  "entry": "flash_next_gyro_register",
+  "registration_target": "gufo_flash_next_gyro",
+  "depends": [],
+  "platforms": [
+    "linux"
+  ],
+  "providers": [
+    {
+      "id": "flash-next-gyro-m",
+      "capability": "text_generation",
+      "keys": [
+        "gguf:qwen4exp-gyro"
+      ],
+      "model_ids": [
+        "flash-next-gyro-m"
+      ],
+      "speculative": [
+        "mtp"
+      ],
+      "target": "gufo_flash_next_gyro_hip",
+      "entry": "flash_next_gyro_gyro_provider_register",
+      "serving": {
+        "draft_options": {
+          "mtp": "--mtp-model"
+        }
+      }
+    }
+  ],
+  "models": [
+    {
+      "id": "flash-next-gyro-m",
+      "provider": "flash-next-gyro-m",
+      "license": "qwen-community-1.0",
+      "description": "Qwen3.8 Flash-Next with Agention Gyro trellis (TQ2_T) routed experts",
+      "components": [
+        {
+          "role": "weights",
+          "option": "--model",
+          "install": "required",
+          "source": {
+            "hf": "agentionai/Qwen3.8-Flash-Next-Gyro-GGUF",
+            "revision": "257c95704b87e99d12e4b1cbd65794837009d587"
+          },
+          "include": [
+            "Qwen3.8-Flash-Next-Gyro-M-TQ2_0.gguf"
+          ]
+        },
+        {
+          "role": "mtp",
+          "option": "--mtp-model",
+          "install": "default",
+          "source": {
+            "hf": "unsloth/Qwen3.8-Flash-Next-GGUF",
+            "revision": "d96201194f103c906994f283f504209dc8d2a10c"
+          },
+          "include": [
+            "MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf"
+          ]
+        },
+        {
+          "role": "mmproj",
+          "option": "--mmproj",
+          "install": "default",
+          "source": {
+            "hf": "unsloth/Qwen3.8-Flash-Next-GGUF",
+            "revision": "d96201194f103c906994f283f504209dc8d2a10c"
+          },
+          "include": [
+            "mmproj-BF16.gguf"
+          ]
+        }
+      ]
+    }
+  ],
+  "options": [
+    {
+      "name": "--mtp-model",
+      "type": "path",
+      "commands": [
+        "serve",
+        "bench",
+        "prompt"
+      ],
+      "providers": [
+        "flash-next-gyro-m"
+      ],
+      "help": "MTP draft model path for speculative decoding"
+    }
+  ],
+  "targets": {
+    "gufo_flash_next_gyro": {
+      "requires": []
+    },
+    "gufo_flash_next_gyro_hip": {
+      "requires": [
+        "hip"
+      ]
+    }
+  },
+  "production_paths": {
+    "include": [
+      "**/*.c",
+      "**/*.cpp",
+      "**/*.h",
+      "**/*.hpp",
+      "**/*.hip",
+      "extension.*"
+    ],
+    "exclude": [
+      "tests/",
+      "docs/"
+    ]
+  },
+  "licenses": [
+    "licenses/gyro.txt"
+  ],
+  "vendored_paths": [
+    "model/gyro/",
+    "model/kernels/rocm/mmq/",
+    "vendored/"
+  ],
+  "docs": {
+    "title": "Qwen3.8 Flash-Next Gyro-M",
+    "inputs": "Gyro-M TQ2_T GGUF; text and images",
+    "guide": "README.md"
+  },
+  "tests": [
+    {
+      "target": "flash_next_gyro_probe_test",
+      "ctest": "flash_next_gyro\\.probe",
+      "check_pr": true,
+      "windows_build": false
+    },
+    {
+      "target": "flash_next_gyro_config_test",
+      "ctest": "flash_next_gyro\\.config",
+      "check_pr": true,
+      "windows_build": false
+    },
+    {
+      "target": "flash_next_gyro_continuation_layout_test",
+      "ctest": "flash_next_gyro\\.continuation_layout",
+      "check_pr": true,
+      "windows_build": false
+    },
+    {
+      "target": "flash_next_gyro_runner_options_test",
+      "ctest": "flash_next_gyro\\.runner_options",
+      "check_pr": true,
+      "windows_build": false
+    },
+    {
+      "target": "flash_next_gyro_ngram_test",
+      "ctest": "flash_next_gyro\\.ngram",
+      "check_pr": true,
+      "windows_build": false
+    },
+    {
+      "target": "flash_next_gyro_rope_scaling_test",
+      "ctest": "flash_next_gyro\\.rope_scaling",
+      "check_pr": true,
+      "windows_build": false
+    },
+    {
+      "target": "flash_next_gyro_trellis_ops_test",
+      "ctest": "flash_next_gyro\\.trellis_ops",
+      "check_pr": true,
+      "windows_build": false
+    },
+    {
+      "target": "flash_next_gyro_gyro_artifact_test",
+      "ctest": "flash_next_gyro\\.gyro_artifact",
+      "check_pr": true,
+      "windows_build": false
+    }
+  ],
+  "test_labels": [
+    "flash_next_gyro"
+  ],
+  "fixtures": "tests/fixtures/"
+}
