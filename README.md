@@ -38,7 +38,11 @@ resident footprint.
 
 ## Install
 
-Requires Gufo 0.32 or newer (`api_version >= 0.3.0`) built with the HIP backend.
+Requires Gufo 0.32 or newer (`api_version >= 0.3.0`) built with the HIP backend;
+validated against Gufo `main` at `800ce328`.
+
+The vision sidecar can be Unsloth's `mmproj-BF16.gguf` (what Gufo's Qwen vision
+stack expects) or Agention's `mmproj-F16.gguf`, which this extension also binds.
 
 ```sh
 # as a module into an installed Gufo
@@ -74,7 +78,14 @@ Everything is in `gufo::models::flash_next_gyro`, not `gufo::models::qwen38_flas
 
 ## Verification
 
-See [`docs/VALIDATION.md`](docs/VALIDATION.md).
+```sh
+ctest --test-dir build/gpu-test -R flash_next_gyro           # host + GPU operators
+QWEN38_FLASH_NEXT_GYRO_MODEL=/path/to/Qwen3.8-Flash-Next-Gyro-M-TQ2_0.gguf \
+  ctest --test-dir build/gpu-test -R flash_next_gyro.gyro_artifact
+```
+
+Measured serving numbers, the coexistence check and the reader option this
+extension needs are in [`docs/VALIDATION.md`](docs/VALIDATION.md).
 
 ## Licenses
 

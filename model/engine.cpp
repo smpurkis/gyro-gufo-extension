@@ -91,7 +91,10 @@ std::shared_ptr<Model> Model::Load(const std::string& model_path,
     return nullptr;
   }
   m->options_ = options;
-  m->reader_ = core::GgufReader::OpenFile(model_path, error_msg);
+  // The trellis expert layout is owned by this extension: core maps the
+  // TQ2_T rows without sizing them, so the reopen must allow that.
+  m->reader_ = core::GgufReader::OpenFile(model_path, error_msg,
+                                         {.allow_unsized_tensors = true});
   if (!m->reader_) {
     return nullptr;
   }
@@ -136,8 +139,8 @@ std::shared_ptr<Model> Model::Load(const std::string& model_path,
     }
   }
   if (!options.mtp_model_path.empty()) {
-    m->mtp_reader_ =
-        core::GgufReader::OpenFile(options.mtp_model_path, error_msg);
+    m->mtp_reader_ = core::GgufReader::OpenFile(
+        options.mtp_model_path, error_msg, {.allow_unsized_tensors = true});
     if (!m->mtp_reader_) {
       return nullptr;
     }

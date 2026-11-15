@@ -834,7 +834,8 @@ std::shared_ptr<ext::TextModelRunner> CreateQwenFlashNextTextRunner(
   if (!reader) {
     std::string load_error;
     auto reader_owner =
-        core::GgufReader::OpenFile(options.model_path, &load_error);
+        core::GgufReader::OpenFile(options.model_path, &load_error,
+                                   {.allow_unsized_tensors = true});
     if (!reader_owner) {
       if (error)
         *error = "Failed to open GGUF: " + load_error;
@@ -940,7 +941,8 @@ std::shared_ptr<ext::TextModelRunner> CreateQwenFlashNextTextRunner(
       draft_fingerprint.empty()) {
     std::string mtp_error;
     auto mtp_reader = core::GgufReader::OpenFile(
-        options.speculative.draft_model_path, &mtp_error);
+        options.speculative.draft_model_path, &mtp_error,
+        {.allow_unsized_tensors = true});
     if (!mtp_reader) {
       if (error)
         *error = "Failed to open MTP model: " + mtp_error;
