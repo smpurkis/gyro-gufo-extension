@@ -31,7 +31,20 @@ gufo_extension_target(
 
 # Gufo's audited surface forwards to its own header paths; the copy the build
 # stages under the binary directory is what resolves those forwards.
-set(GFN_PUBLIC_INCLUDE "${CMAKE_BINARY_DIR}/src/ext/public-include")
+# Gufo stages the audited `src/...` forwarding headers in different places for
+# a compiled-in extension and for a loadable module. Read the location from the
+# public runtime target instead of guessing from the build layout.
+get_target_property(GFN_RUNTIME_INCLUDES gufo_ext_runtime INTERFACE_INCLUDE_DIRECTORIES)
+set(GFN_SURFACE "")
+foreach(gfn_include IN LISTS GFN_RUNTIME_INCLUDES)
+  if(gfn_include MATCHES "public-include$")
+    set(GFN_SURFACE "${gfn_include}")
+  endif()
+endforeach()
+if(NOT GFN_SURFACE)
+  set(GFN_SURFACE "${CMAKE_BINARY_DIR}/src/ext/public-include")
+endif()
+set(GFN_PUBLIC_INCLUDE "${GFN_SURFACE}")
 
 # The scalar oracle the numeric tests compare kernels against.
 add_library(gufo_flash_next_gyro_reference STATIC EXCLUDE_FROM_ALL
@@ -84,7 +97,7 @@ if(ENGINE_ENABLE_HIP)
   # copy under the build tree provides. This target keeps its own C++17 dialect,
   # so it takes that directory directly instead of linking the runtime target.
   target_include_directories(gufo_flash_next_gyro_mmq SYSTEM PRIVATE
-    "${CMAKE_BINARY_DIR}/src/ext/public-include")
+    "${GFN_PUBLIC_INCLUDE}")
   target_link_libraries(gufo_flash_next_gyro_mmq PUBLIC hip::host roc::hipblas)
 
   gufo_extension_target(
@@ -205,7 +218,7 @@ if(ENGINE_ENABLE_HIP)
 endif()
 
 # Tests. Host contracts and kernel checks need no model weights.
-if(BUILD_TESTING AND NOT TARGET flash_next_gyro_tests)
+if(NOT TARGET flash_next_gyro_tests)
   add_custom_target(flash_next_gyro_tests)
 endif()
 
@@ -236,6 +249,7 @@ target_link_libraries(flash_next_gyro_continuation_identity_test PRIVATE
   gufo_ext_core)
 add_test(NAME flash_next_gyro_continuation_identity_test
   COMMAND flash_next_gyro_continuation_identity_test)
+add_dependencies(flash_next_gyro_tests flash_next_gyro_continuation_identity_test)
 set_tests_properties(flash_next_gyro_continuation_identity_test PROPERTIES
   LABELS "cpu;flash_next_gyro;cache;correctness")
 

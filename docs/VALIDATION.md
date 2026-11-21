@@ -1,7 +1,8 @@
 # Validation
 
-Checked on a Strix Halo (`gfx1151`), ROCm 7.2.4, Gufo `main` at `800ce328` plus the
-`split.count = 0` reader tolerance. The extension is compiled into the build with
+Checked on a Strix Halo (`gfx1151`), ROCm 7.2.4, Gufo `main` at `029a1569`
+(extension API 0.3.35) plus the `split.count = 0` reader tolerance from
+[gufo-org/gufo#1313](https://github.com/gufo-org/gufo/pull/1313). The extension is compiled into the build with
 
 ```sh
 cmake --preset gpu-test \
@@ -51,12 +52,13 @@ this model.
 
 | measurement | value |
 | --- | --- |
-| load | 12.2 s, RSS 3.6 GiB, 82 GiB of the 128 GiB device pool |
-| prefill | 793.6 tok/s cold, 869.2 tok/s on a new prompt |
-| decode | 50.5–66.1 tok/s with MTP (37 drafts, 19 accepted on the first request) |
-| image request | answered from a generated PNG; 86 prompt tokens |
-| live continuation | identical prompt reused 399 cached tokens |
-| disk continuation | after a server restart on the same cache directory, `event=disk_restore tokens=392 bytes=143468224 pieces=189`, 392 cached tokens |
+| load | 13.3 s, RSS 1.6 GiB, 80,788 MiB of the 128 GiB device pool |
+| prefill | **1510.4 tok/s on an 11,789-token prompt** (cold); the earlier 28-token prompt showed only 165 tok/s because fixed per-request overhead dominates at that length |
+| prompt cache | identical 11,789-token prompt reused all 11,789 tokens (PP not charged) |
+| decode | 45.6 tok/s with MTP on a short prompt (37 drafts, 19 accepted); 29.5 tok/s after an 11,789-token prefill |
+| image request | answered from a generated PNG; 86 prompt tokens, 53.3 tok/s |
+| live continuation | identical prompt reused 399 cached tokens (validated on the prior API series) |
+| disk continuation | after a server restart on the same cache directory, `event=disk_restore tokens=392 bytes=143468224 pieces=189`, 392 cached tokens (prior API series) |
 | faults | 0 `device_lost`, 0 HIP errors, 0 OOM |
 
 ## The reader option this extension needs
@@ -68,3 +70,15 @@ rejected during binding and serving fails with
 `Invalid GGUF tensor shape or unsupported storage type: blk.0.ffn_down_exps.weight`.
 It is only reachable in a serving run, so it was found here rather than by the
 header-level tests.
+
+
+## Module build
+
+`gufo extension install <local checkout> --yes` on a gufo built from `029a1569`
+configured, built and installed `flash_next_gyro 0.1.0` as a loadable module;
+`gufo diagnose --section extensions` then lists
+`flash_next_gyro 0.1.0 (module:.../gufo-ext-flash_next_gyro.so)` beside the
+built-in `qwen38_flash_next`, with both `flash-next-gyro-m` and `flash-next-q4`
+available. The public surface location is discovered from `gufo_ext_runtime`'s
+include directories, so the same `extension.cmake` works for both compiled-in
+and module builds.

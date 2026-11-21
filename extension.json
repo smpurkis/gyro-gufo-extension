@@ -2,7 +2,7 @@
   "schema": 1,
   "name": "flash_next_gyro",
   "version": "0.1.0",
-  "api_version": ">= 0.3.0",
+  "api_version": ">= 0.3.35",
   "entry": "flash_next_gyro_register",
   "registration_target": "gufo_flash_next_gyro",
   "depends": [],

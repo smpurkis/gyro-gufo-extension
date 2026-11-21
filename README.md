@@ -38,15 +38,22 @@ resident footprint.
 
 ## Install
 
-Requires Gufo 0.32 or newer (`api_version >= 0.3.0`) built with the HIP backend;
-validated against Gufo `main` at `800ce328`.
+Requires Gufo with extension API `>= 0.3.35` (validated against Gufo `main`
+at `029a1569`) built with the HIP backend for `gfx1151`.
+
+The Gyro-M artifact stores `split.count = 0`, which Gufo's reader rejects
+before a provider is probed. Loading it therefore also needs the reader fix in
+[gufo-org/gufo#1313](https://github.com/gufo-org/gufo/pull/1313) (treat 0 as a
+single file). Once that lands, no other core change is required.
 
 The vision sidecar can be Unsloth's `mmproj-BF16.gguf` (what Gufo's Qwen vision
 stack expects) or Agention's `mmproj-F16.gguf`, which this extension also binds.
 
 ```sh
 # as a module into an installed Gufo
-gufo extension install https://github.com/smpurkis/gyro-gufo-extension@<sha>
+gufo extension install flash_next_gyro
+# or, before it is in the reviewed catalogue:
+gufo extension install https://github.com/smpurkis/gyro-gufo-extension@<sha> --yes
 
 # or compiled into your own build
 cmake --preset release -DGUFO_EXTENSION_DIRS=/absolute/path/to/gyro-gufo-extension
